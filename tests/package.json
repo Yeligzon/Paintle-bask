@@ -1,0 +1,15 @@
+{
+  "name": "paintle3d-tests",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Pruebas de humo de Paintle 3D en Node + jsdom (sin navegador).",
+  "scripts": {
+    "test": "node test-2d.mjs && node test-3d.mjs",
+    "test:2d": "node test-2d.mjs",
+    "test:3d": "node test-3d.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
+}

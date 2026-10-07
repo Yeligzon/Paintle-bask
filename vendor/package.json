@@ -1,0 +1,12 @@
+{
+  "name": "three",
+  "version": "0.160.0",
+  "type": "module",
+  "main": "./three.module.js",
+  "exports": {
+    ".": "./three.module.js",
+    "./addons/*": "./addons/*"
+  },
+  "license": "MIT",
+  "comment": "Copia local (vendorizada) de three.js r160 para que Paintle 3D funcione sin CDN. Ver LICENSE-three.txt."
+}

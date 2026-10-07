@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Paintle 3D — Estudio de dibujo y modelado</title>
+<meta name="description" content="Clon web del Paint 3D de Windows 11: lienzo 2D con pinceles, formas y relleno, más un estudio 3D con objetos, materiales y texturas." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='12' height='12' rx='2' fill='%23f2545b'/%3E%3Crect x='17' y='3' width='12' height='12' rx='2' fill='%234cc2ff'/%3E%3Crect x='3' y='17' width='12' height='12' rx='2' fill='%23ffce54'/%3E%3Crect x='17' y='17' width='12' height='12' rx='2' fill='%2360cd6d'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/addons/"
+  }
+}
+</script>
+</head>
+<body>
+
+<!-- ══════════════════ SVG icon sprite ══════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="i-arrow-left"><path d="M14 5 7 12l7 7"/><path d="M7 12h13"/></g>
+<g id="i-save"><path d="M5 4h11l3 3v13H5z"/><path d="M8.5 4v5h7V4"/><rect x="8.5" y="13" width="7" height="6"/></g>
+<g id="i-folder"><path d="M3.5 6.5h6l2 2.5h9v10h-17z"/></g>
+<g id="i-download"><path d="M12 3.5v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 19.5h15"/></g>
+<g id="i-gallery"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17l4.5-4.5 3.5 3.5 3-3 5 5"/></g>
+<g id="i-pencil"><path d="M4 20l1-4.5L16.5 4 20 7.5 8.5 19z"/><path d="M14.5 6 18 9.5"/></g>
+<g id="i-brush"><path d="M15 3.8l5.2 5.2-7.6 7.6H7.4v-5.2z"/><path d="M7.4 16.6c-2 .6-2.4 2-3.9 3.9 1.9 1.5 4.6 1.9 6-1"/></g>
+<g id="i-marker"><path d="M9 3.5h9v9l-4.5 6-4.5-6z"/><path d="M9 12.5h9"/><path d="M6.5 21h14"/></g>
+<g id="i-neon"><path d="M12 3.5 14 9.8l6.3 2.2-6.3 2.2-2 6.3-2-6.3L3.7 12 10 9.8z"/></g>
+<g id="i-eraser"><path d="M7.5 20.5 3.8 16.8a1.6 1.6 0 0 1 0-2.3l9-9a1.6 1.6 0 0 1 2.3 0l5 5a1.6 1.6 0 0 1 0 2.3l-7.6 7.7z"/><path d="M8.6 9.9l7.5 7.5"/><path d="M13.5 20.5H21"/></g>
+<g id="i-bucket"><path d="M6.5 10.5 13 4l7 7-6.5 6.5a1.5 1.5 0 0 1-2.1 0l-4.9-4.9a1.5 1.5 0 0 1 0-2.1z"/><path d="M4.2 11.2l7.1-7.1"/><path d="M20.5 17.5c1.2 1.6 1.8 2.7 1.8 3.5a1.8 1.8 0 1 1-3.6 0c0-.8.6-1.9 1.8-3.5z"/></g>
+<g id="i-picker"><path d="M17.5 3.5l3 3"/><path d="M15 6l3 3-8 8-4 1 1-4z"/><path d="M13.5 7.5l3 3"/></g>
+<g id="i-shapes"><rect x="3.5" y="12" width="8.5" height="8.5" rx="1"/><circle cx="16" cy="8" r="4.5"/></g>
+<g id="i-square"><rect x="4.5" y="4.5" width="15" height="15" rx="1.5"/></g>
+<g id="i-ellipse"><circle cx="12" cy="12" r="8"/></g>
+<g id="i-line"><path d="M5 19 19 5"/></g>
+<g id="i-triangle"><path d="M12 4.5 20.5 19.5h-17z"/></g>
+<g id="i-arrow"><path d="M4.5 12h14"/><path d="M13.5 7l5 5-5 5"/></g>
+<g id="i-star"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.9l-5.3 2.8 1.1-5.9-4.3-4.1 5.9-.8z"/></g>
+<g id="i-heart"><path d="M12 20.3 4.9 13.2a4.2 4.2 0 0 1 6-6l1.1 1.1 1.1-1.1a4.2 4.2 0 0 1 6 6z"/></g>
+<g id="i-select"><path d="M5.5 3.5v15l4-4 2.4 5.2 2.3-1.1-2.4-5.1h5.6z"/></g>
+<g id="i-cube"><path d="M12 3.2 20 7.4v9.2L12 20.8 4 16.6V7.4z"/><path d="M4 7.4l8 4.2 8-4.2"/><path d="M12 11.6v9.2"/></g>
+<g id="i-sphere"><circle cx="12" cy="12" r="8.2"/><ellipse cx="12" cy="12" rx="8.2" ry="3.3"/><path d="M12 3.8v16.4"/></g>
+<g id="i-cylinder"><ellipse cx="12" cy="6.5" rx="6" ry="2.6"/><path d="M6 6.5v11c0 1.4 2.7 2.6 6 2.6s6-1.2 6-2.6v-11"/></g>
+<g id="i-cone"><path d="M12 3.8 18.5 17"/><path d="M12 3.8 5.5 17"/><ellipse cx="12" cy="17.4" rx="6.5" ry="2.6"/></g>
+<g id="i-torus"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/></g>
+<g id="i-diamond"><path d="M12 3.2 20.8 12 12 20.8 3.2 12z"/></g>
+<g id="i-capsule"><rect x="8" y="3.5" width="8" height="17" rx="4"/></g>
+<g id="i-knot"><path d="M12 5c4 0 7 2.4 7 5.2 0 2-1.4 3.6-3.4 4.4"/><path d="M12 19c-4 0-7-2.4-7-5.2 0-2 1.4-3.6 3.4-4.4"/><path d="M8.6 9.6c-1.6 2.6-1.6 5.6 0 7"/><path d="M15.4 9.6c1.6 2.6 1.6 5.6 0 7"/></g>
+<g id="i-doodle"><path d="M4 15c3-6 5 3 8-2s4 4 8-1"/><circle cx="6.5" cy="7" r="1.4"/></g>
+<g id="i-undo"><path d="M9 7.5H15a5 5 0 0 1 0 10h-6"/><path d="M12 4 8.5 7.5 12 11"/></g>
+<g id="i-redo"><path d="M15 7.5H9a5 5 0 0 0 0 10h6"/><path d="M12 4l3.5 3.5L12 11"/></g>
+<g id="i-plus"><path d="M12 5v14M5 12h14"/></g>
+<g id="i-trash"><path d="M4.5 7h15"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10.5 10.5v6M13.5 10.5v6"/></g>
+<g id="i-copy"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 5.5h-9a2 2 0 0 0-2 2v9"/></g>
+<g id="i-flatten"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M9 15l3-4 2 2.5 2-2.5 2.5 4z"/><path d="M8.5 10.2h.01"/></g>
+<g id="i-grid"><path d="M3.5 9.5h17M3.5 14.5h17M9.5 3.5v17M14.5 3.5v17"/></g>
+<g id="i-eye"><path d="M2.8 12S6.4 6.2 12 6.2 21.2 12 21.2 12 17.6 17.8 12 17.8 2.8 12 2.8 12z"/><circle cx="12" cy="12" r="2.9"/></g>
+<g id="i-zoomin"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20.5 20.5"/><path d="M10.5 7.8v5.4M7.8 10.5h5.4"/></g>
+<g id="i-zoomout"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20.5 20.5"/><path d="M7.8 10.5h5.4"/></g>
+<g id="i-fit"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></g>
+<g id="i-theme"><circle cx="12" cy="12" r="8.4"/><path d="M12 3.6a8.4 8.4 0 0 0 0 16.8z" fill="currentColor" stroke="none"/></g>
+<g id="i-front"><rect x="5" y="5" width="14" height="14" rx="1.5"/></g>
+<g id="i-top"><path d="M12 3.6 20.4 8 12 12.4 3.6 8z"/><path d="M3.6 8v6L12 18.4 20.4 14V8"/></g>
+<g id="i-reset"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.2 3.8v4.6h-4.6"/></g>
+<g id="i-close"><path d="M6 6l12 12M18 6 6 18"/></g>
+<g id="i-min"><path d="M5 12h14"/></g>
+<g id="i-max"><rect x="5.5" y="5.5" width="13" height="13" rx="1.5"/></g>
+<g id="i-home"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.4 10.6V20h11.2v-9.4"/></g>
+<g id="i-chevron"><path d="M9 5.5 15.5 12 9 18.5"/></g>
+<g id="i-info"><circle cx="12" cy="12" r="8.4"/><path d="M12 11v5.6"/><path d="M12 7.9h.01"/></g>
+<g id="i-layers"><path d="M12 3.6 21 8.4 12 13.2 3 8.4z"/><path d="M3 13.2 12 18l9-4.8"/></g>
+<g id="i-palette"><path d="M12 3.6a8.4 8.4 0 0 0 0 16.8c1.5 0 2.2-1 2.2-2s-.8-1.6-.8-2.4c0-.8.7-1.4 1.6-1.4h1.6c1.9 0 3.4-1.5 3.4-3.4 0-4-3.9-7.6-8-7.6z"/><circle cx="8.2" cy="10.2" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.8" cy="9.6" r="1.1" fill="currentColor" stroke="none"/></g>
+</defs></svg>
+
+<!-- ══════════════════ Pantalla de inicio ══════════════════ -->
+<div id="home" class="home">
+  <div class="home-bg" aria-hidden="true"></div>
+  <div class="home-card">
+    <div class="home-logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="72" height="72">
+        <rect x="4" y="4" width="26" height="26" rx="5" fill="#f2545b"/>
+        <rect x="34" y="4" width="26" height="26" rx="5" fill="#4cc2ff"/>
+        <rect x="4" y="34" width="26" height="26" rx="5" fill="#ffce54"/>
+        <rect x="34" y="34" width="26" height="26" rx="5" fill="#60cd6d"/>
+      </svg>
+    </div>
+    <h1>Paintle <span>3D</span></h1>
+    <p class="home-sub">Dibuja en 2D, crea objetos en 3D y mézclalo todo en un mismo lienzo.<br/>Inspirado en el Paint 3D de Windows 11.</p>
+    <div class="home-actions">
+      <button class="btn accent lg" id="home-new"><svg class="ic"><use href="#i-plus"/></svg> Nuevo lienzo</button>
+      <button class="btn lg" id="home-gallery"><svg class="ic"><use href="#i-gallery"/></svg> Galería</button>
+      <button class="btn lg" id="home-open"><svg class="ic"><use href="#i-folder"/></svg> Abrir imagen</button>
+    </div>
+    <div class="home-hint">
+      <span><b>2D</b> lápiz · pincel · rotulador · neón · formas · relleno</span>
+      <span><b>3D</b> cubos · esferas · donuts · materiales · texturas</span>
+      <span><b>Atajos</b> Ctrl+Z deshacer · Ctrl+S guardar · Rueda zoom</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ Galería ══════════════════ -->
+<div id="gallery" class="home hidden">
+  <div class="home-bg" aria-hidden="true"></div>
+  <div class="gallery-card">
+    <header>
+      <div>
+        <h2>Galería</h2>
+        <p class="muted">Tus creaciones se guardan en este navegador (localStorage).</p>
+      </div>
+      <button class="btn" id="gallery-back"><svg class="ic"><use href="#i-arrow-left"/></svg> Volver</button>
+    </header>
+    <div id="gallery-grid" class="gallery-grid"></div>
+    <p id="gallery-empty" class="empty">Todavía no hay nada guardado aquí.</p>
+  </div>
+</div>
+
+<!-- ══════════════════ Aplicación ══════════════════ -->
+<div id="app" class="app hidden">
+
+  <!-- Barra de título -->
+  <header class="titlebar">
+    <button class="tb-btn" id="btn-home" title="Inicio"><svg class="ic"><use href="#i-home"/></svg></button>
+    <div class="tb-logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="16" height="16">
+        <rect x="4" y="4" width="26" height="26" rx="5" fill="#f2545b"/>
+        <rect x="34" y="4" width="26" height="26" rx="5" fill="#4cc2ff"/>
+        <rect x="4" y="34" width="26" height="26" rx="5" fill="#ffce54"/>
+        <rect x="34" y="34" width="26" height="26" rx="5" fill="#60cd6d"/>
+      </svg>
+    </div>
+    <div class="tb-title">
+      <span id="doc-name">Sin título</span>
+      <span class="tb-mode" id="tb-mode">2D</span>
+    </div>
+    <div class="tb-actions">
+      <button class="tb-act" id="btn-new" title="Nuevo (Ctrl+Alt+N)"><svg class="ic"><use href="#i-plus"/></svg><span>Nuevo</span></button>
+      <button class="tb-act" id="btn-open" title="Abrir imagen"><svg class="ic"><use href="#i-folder"/></svg><span>Abrir</span></button>
+      <button class="tb-act" id="btn-save" title="Guardar en la galería (Ctrl+S)"><svg class="ic"><use href="#i-save"/></svg><span>Guardar</span></button>
+      <button class="tb-act" id="btn-download" title="Descargar PNG"><svg class="ic"><use href="#i-download"/></svg><span>Descargar</span></button>
+      <button class="tb-act" id="btn-gallery" title="Galería"><svg class="ic"><use href="#i-gallery"/></svg><span>Galería</span></button>
+    </div>
+    <div class="tb-win">
+      <button class="win-btn" title="Minimizar"><svg class="ic"><use href="#i-min"/></svg></button>
+      <button class="win-btn" title="Maximizar"><svg class="ic"><use href="#i-max"/></svg></button>
+      <button class="win-btn danger" title="Cerrar"><svg class="ic"><use href="#i-close"/></svg></button>
+    </div>
+  </header>
+
+  <!-- Cinta de opciones -->
+  <nav class="ribbon">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="inicio" role="tab">Inicio</button>
+      <button class="tab" data-tab="3d" role="tab">3D</button>
+      <button class="tab" data-tab="vista" role="tab">Vista</button>
+    </div>
+
+    <div class="ribbon-body">
+      <!-- Pestaña Inicio -->
+      <section class="tabpage active" data-page="inicio">
+        <div class="group">
+          <div class="group-body">
+            <button class="rbtn big mode-btn active" data-mode="2d" title="Lienzo 2D">
+              <svg class="ic lg"><use href="#i-pencil"/></svg><span>Dibujar</span>
+            </button>
+            <div class="rbtn-stack">
+              <button class="rbtn" id="btn-undo" title="Deshacer (Ctrl+Z)" disabled><svg class="ic"><use href="#i-undo"/></svg><span>Deshacer</span></button>
+              <button class="rbtn" id="btn-redo" title="Rehacer (Ctrl+Y)" disabled><svg class="ic"><use href="#i-redo"/></svg><span>Rehacer</span></button>
+            </div>
+          </div>
+          <div class="group-label">Lienzo</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body">
+            <div class="tool-grid" id="brush-grid">
+              <button class="tbtn active" data-tool="pencil" title="Lápiz (P)"><svg class="ic"><use href="#i-pencil"/></svg></button>
+              <button class="tbtn" data-tool="brush" title="Pincel (B)"><svg class="ic"><use href="#i-brush"/></svg></button>
+              <button class="tbtn" data-tool="marker" title="Rotulador (M)"><svg class="ic"><use href="#i-marker"/></svg></button>
+              <button class="tbtn" data-tool="neon" title="Neón (N)"><svg class="ic"><use href="#i-neon"/></svg></button>
+              <button class="tbtn" data-tool="eraser" title="Borrador (E)"><svg class="ic"><use href="#i-eraser"/></svg></button>
+              <button class="tbtn" data-tool="fill" title="Relleno (G)"><svg class="ic"><use href="#i-bucket"/></svg></button>
+              <button class="tbtn" data-tool="picker" title="Cuentagotas (I)"><svg class="ic"><use href="#i-picker"/></svg></button>
+              <button class="tbtn" data-tool="select" title="Seleccionar color (V)"><svg class="ic"><use href="#i-select"/></svg></button>
+            </div>
+          </div>
+          <div class="group-label">Herramientas</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col">
+            <div class="shape-row" id="shape-grid">
+              <button class="tbtn active" data-shape="free" title="Trazo libre"><svg class="ic"><use href="#i-doodle"/></svg></button>
+              <button class="tbtn" data-shape="line" title="Línea"><svg class="ic"><use href="#i-line"/></svg></button>
+              <button class="tbtn" data-shape="rect" title="Rectángulo"><svg class="ic"><use href="#i-square"/></svg></button>
+              <button class="tbtn" data-shape="ellipse" title="Elipse"><svg class="ic"><use href="#i-ellipse"/></svg></button>
+              <button class="tbtn" data-shape="triangle" title="Triángulo"><svg class="ic"><use href="#i-triangle"/></svg></button>
+              <button class="tbtn" data-shape="arrow" title="Flecha"><svg class="ic"><use href="#i-arrow"/></svg></button>
+              <button class="tbtn" data-shape="star" title="Estrella"><svg class="ic"><use href="#i-star"/></svg></button>
+              <button class="tbtn" data-shape="heart" title="Corazón"><svg class="ic"><use href="#i-heart"/></svg></button>
+            </div>
+            <label class="check"><input type="checkbox" id="shape-fill"/> Relleno</label>
+          </div>
+          <div class="group-label">Formas</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col stretch">
+            <div class="slider-row">
+              <span class="mini-label">Grosor</span>
+              <input type="range" id="size-range" min="1" max="80" value="6"/>
+              <output id="size-out">6</output>
+            </div>
+            <div class="slider-row">
+              <span class="mini-label">Opacidad</span>
+              <input type="range" id="alpha-range" min="10" max="100" value="100"/>
+              <output id="alpha-out">100%</output>
+            </div>
+            <div class="seg" id="color-target">
+              <button class="seg-btn active" data-target="stroke">Contorno</button>
+              <button class="seg-btn" data-target="fill">Relleno</button>
+            </div>
+          </div>
+          <div class="group-label">Pincel</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col">
+            <div class="color-row">
+              <button class="color-main" id="btn-stroke-color" title="Color de contorno"><span class="swatch" style="background:#1b1b1f"></span><em>Contorno</em></button>
+              <button class="color-main" id="btn-fill-color" title="Color de relleno"><span class="swatch" style="background:#4cc2ff"></span><em>Relleno</em></button>
+              <button class="tbtn" id="btn-palette" title="Selector de color"><svg class="ic"><use href="#i-palette"/></svg></button>
+            </div>
+            <div class="palette" id="palette"></div>
+          </div>
+          <div class="group-label">Color</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body">
+            <button class="rbtn" id="btn-clear" title="Borrar todo el lienzo"><svg class="ic"><use href="#i-trash"/></svg><span>Limpiar</span></button>
+            <button class="rbtn" id="btn-to3d" title="Ir al estudio 3D"><svg class="ic"><use href="#i-cube"/></svg><span>Estudio 3D</span></button>
+          </div>
+          <div class="group-label">Acciones</div>
+        </div>
+      </section>
+
+      <!-- Pestaña 3D -->
+      <section class="tabpage" data-page="3d">
+        <div class="group">
+          <div class="group-body">
+            <button class="rbtn big mode-btn" data-mode="3d" title="Escena 3D">
+              <svg class="ic lg"><use href="#i-cube"/></svg><span>3D</span>
+            </button>
+            <div class="rbtn-stack">
+              <button class="rbtn" id="btn-undo-3d" title="Deshacer (Ctrl+Z)" disabled><svg class="ic"><use href="#i-undo"/></svg><span>Deshacer</span></button>
+              <button class="rbtn" id="btn-redo-3d" title="Rehacer (Ctrl+Y)" disabled><svg class="ic"><use href="#i-redo"/></svg><span>Rehacer</span></button>
+            </div>
+          </div>
+          <div class="group-label">Escena</div>
+        </div>
+
+        <div class="group wide">
+          <div class="group-body">
+            <div class="tool-grid cols6" id="obj-grid">
+              <button class="tbtn" data-obj="box" title="Cubo"><svg class="ic"><use href="#i-cube"/></svg></button>
+              <button class="tbtn" data-obj="sphere" title="Esfera"><svg class="ic"><use href="#i-sphere"/></svg></button>
+              <button class="tbtn" data-obj="cylinder" title="Cilindro"><svg class="ic"><use href="#i-cylinder"/></svg></button>
+              <button class="tbtn" data-obj="cone" title="Cono"><svg class="ic"><use href="#i-cone"/></svg></button>
+              <button class="tbtn" data-obj="torus" title="Donut"><svg class="ic"><use href="#i-torus"/></svg></button>
+              <button class="tbtn" data-obj="diamond" title="Diamante"><svg class="ic"><use href="#i-diamond"/></svg></button>
+              <button class="tbtn" data-obj="capsule" title="Cápsula"><svg class="ic"><use href="#i-capsule"/></svg></button>
+              <button class="tbtn" data-obj="knot" title="Nudo"><svg class="ic"><use href="#i-knot"/></svg></button>
+              <button class="tbtn" data-obj="heart" title="Corazón"><svg class="ic"><use href="#i-heart"/></svg></button>
+              <button class="tbtn" data-obj="star" title="Estrella"><svg class="ic"><use href="#i-star"/></svg></button>
+              <button class="tbtn" data-obj="pyramid" title="Pirámide"><svg class="ic"><use href="#i-cone"/></svg></button>
+              <button class="tbtn" data-obj="ring" title="Anillo"><svg class="ic"><use href="#i-torus"/></svg></button>
+            </div>
+          </div>
+          <div class="group-label">Añadir objeto 3D</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body">
+            <div class="rbtn-stack">
+              <button class="rbtn" id="btn-dup" title="Duplicar (Ctrl+D)"><svg class="ic"><use href="#i-copy"/></svg><span>Duplicar</span></button>
+              <button class="rbtn" id="btn-del" title="Eliminar (Supr)"><svg class="ic"><use href="#i-trash"/></svg><span>Eliminar</span></button>
+            </div>
+            <button class="rbtn accent-soft" id="btn-flatten" title="Convertir la vista 3D en dibujo 2D">
+              <svg class="ic"><use href="#i-flatten"/></svg><span>Pasar a 2D</span>
+            </button>
+          </div>
+          <div class="group-label">Editar</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col stretch">
+            <div class="seg" id="gizmo-seg">
+              <button class="seg-btn active" data-gizmo="translate"><svg class="ic sm"><use href="#i-arrow"/></svg> Mover</button>
+              <button class="seg-btn" data-gizmo="rotate"><svg class="ic sm"><use href="#i-reset"/></svg> Girar</button>
+              <button class="seg-btn" data-gizmo="scale"><svg class="ic sm"><use href="#i-fit"/></svg> Escala</button>
+            </div>
+            <div class="seg" id="view-seg">
+              <button class="seg-btn" data-view="persp">3/4</button>
+              <button class="seg-btn" data-view="front">Fronte</button>
+              <button class="seg-btn" data-view="top">Superior</button>
+              <button class="seg-btn" data-view="side">Lateral</button>
+            </div>
+          </div>
+          <div class="group-label">Herramientas y cámara</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col">
+            <label class="check"><input type="checkbox" id="chk-grid" checked/> Cuadrícula</label>
+            <label class="check"><input type="checkbox" id="chk-shadow" checked/> Sombras</label>
+            <label class="check"><input type="checkbox" id="chk-spin"/> Giro automático</label>
+          </div>
+          <div class="group-label">Mostrar</div>
+        </div>
+      </section>
+
+      <!-- Pestaña Vista -->
+      <section class="tabpage" data-page="vista">
+        <div class="group">
+          <div class="group-body col stretch">
+            <div class="slider-row">
+              <span class="mini-label">Zoom</span>
+              <input type="range" id="zoom-range" min="10" max="400" value="100"/>
+              <output id="zoom-out">100%</output>
+            </div>
+            <div class="seg" id="zoom-seg">
+              <button class="seg-btn" data-zoom="out"><svg class="ic sm"><use href="#i-zoomout"/></svg></button>
+              <button class="seg-btn" data-zoom="in"><svg class="ic sm"><use href="#i-zoomin"/></svg></button>
+              <button class="seg-btn" data-zoom="fit">Ajustar</button>
+              <button class="seg-btn" data-zoom="100">100%</button>
+            </div>
+          </div>
+          <div class="group-label">Zoom</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col">
+            <label class="check"><input type="checkbox" id="chk-transp"/> Fondo transparente</label>
+            <label class="check"><input type="checkbox" id="chk-guides"/> Guías del lienzo</label>
+            <button class="rbtn" id="btn-theme"><svg class="ic"><use href="#i-theme"/></svg><span>Tema oscuro</span></button>
+          </div>
+          <div class="group-label">Lienzo</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col stretch">
+            <div class="seg" id="size-seg">
+              <button class="seg-btn active" data-cw="1920" data-ch="1200">1920×1200</button>
+              <button class="seg-btn" data-cw="1280" data-ch="720">1280×720</button>
+              <button class="seg-btn" data-cw="1080" data-ch="1080">Cuadrado</button>
+              <button class="seg-btn" data-cw="800" data-ch="1200">Vertical</button>
+            </div>
+            <p class="hint-text">Cambiar el tamaño recorta o amplía el lienzo conservando el dibujo.</p>
+          </div>
+          <div class="group-label">Tamaño del lienzo</div>
+        </div>
+
+        <div class="group">
+          <div class="group-body col">
+            <p class="hint-text" id="help-text">
+              Rueda = zoom · Espacio + arrastrar = mover lienzo · En 3D: clic para seleccionar,
+              arrastrar con el gizmo, rueda para acercar.
+            </p>
+          </div>
+          <div class="group-label">Ayuda</div>
+        </div>
+      </section>
+    </div>
+  </nav>
+
+  <!-- Área de trabajo -->
+  <main class="workspace">
+    <!-- Riel izquierdo -->
+    <aside class="rail">
+      <div class="rail-section">
+        <span class="rail-title">Modo</span>
+        <button class="rail-btn mode-btn active" data-mode="2d" title="Lienzo 2D"><svg class="ic"><use href="#i-pencil"/></svg><span>2D</span></button>
+        <button class="rail-btn mode-btn" data-mode="3d" title="Escena 3D"><svg class="ic"><use href="#i-cube"/></svg><span>3D</span></button>
+      </div>
+      <div class="rail-sep"></div>
+      <div class="rail-section">
+        <span class="rail-title">Herramientas</span>
+        <div id="rail-tools"></div>
+      </div>
+      <div class="rail-sep"></div>
+      <div class="rail-section">
+        <span class="rail-title">Colores</span>
+        <div class="rail-colors">
+          <button class="rail-swatch" id="rail-stroke" title="Color de contorno"><span class="swatch" style="background:#1b1b1f"></span></button>
+          <button class="rail-swatch" id="rail-fill" title="Color de relleno"><span class="swatch" style="background:#4cc2ff"></span></button>
+        </div>
+        <div class="rail-recent" id="rail-recent"></div>
+      </div>
+      <div class="rail-sep"></div>
+      <div class="rail-section grow">
+        <span class="rail-title">Objetos 3D</span>
+        <div id="rail-objects"></div>
+      </div>
+    </aside>
+
+    <!-- Escenario -->
+    <section class="stage" id="stage">
+      <div class="stage-inner" id="stage-inner">
+        <div class="paper" id="paper">
+          <canvas id="canvas2d" width="1920" height="1200"></canvas>
+          <canvas id="overlay" width="1920" height="1200"></canvas>
+        </div>
+        <div class="threed hidden" id="threed">
+          <div id="three-host"></div>
+          <div class="viewcube" id="viewcube" title="Vista">
+            <span>3D</span>
+          </div>
+          <div class="hint3d" id="hint3d">Haz clic en un objeto para seleccionarlo · rueda para zoom · clic derecho para desplazar</div>
+        </div>
+      </div>
+
+      <div class="stage-zoom">
+        <button class="zbtn" id="z-out" title="Alejar"><svg class="ic sm"><use href="#i-zoomout"/></svg></button>
+        <span id="z-label">100%</span>
+        <button class="zbtn" id="z-in" title="Acercar"><svg class="ic sm"><use href="#i-zoomin"/></svg></button>
+        <button class="zbtn" id="z-fit" title="Ajustar a la pantalla"><svg class="ic sm"><use href="#i-fit"/></svg></button>
+      </div>
+    </section>
+
+    <!-- Panel de propiedades 3D -->
+    <aside class="props hidden" id="props">
+      <header>
+        <h3>Propiedades</h3>
+        <button class="icon-btn" id="props-close" title="Cerrar"><svg class="ic sm"><use href="#i-close"/></svg></button>
+      </header>
+      <div class="props-body" id="props-body">
+        <p class="empty" id="props-empty">Selecciona un objeto 3D para editar su color, material, textura y tamaño.</p>
+        <div id="props-form" class="hidden">
+          <div class="field">
+            <label>Color</label>
+            <div class="mini-palette" id="prop-palette"></div>
+            <input type="color" id="prop-color" value="#4cc2ff"/>
+          </div>
+          <div class="field">
+            <label>Material</label>
+            <div class="seg seg-3" id="prop-finish">
+              <button class="seg-btn active" data-finish="matte">Mate</button>
+              <button class="seg-btn" data-finish="satin">Satín</button>
+              <button class="seg-btn" data-finish="metal">Metal</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Textura</label>
+            <div class="tex-grid" id="prop-tex"></div>
+          </div>
+          <div class="field">
+            <label for="prop-opacity">Opacidad <output id="prop-opacity-out">100%</output></label>
+            <input type="range" id="prop-opacity" min="10" max="100" value="100"/>
+          </div>
+          <div class="field">
+            <label for="prop-scale">Tamaño <output id="prop-scale-out">100%</output></label>
+            <input type="range" id="prop-scale" min="10" max="300" value="100"/>
+          </div>
+          <div class="field">
+            <label for="prop-rotx">Giro X <output id="prop-rotx-out">0°</output></label>
+            <input type="range" id="prop-rotx" min="0" max="360" value="0"/>
+            <label for="prop-roty">Giro Y <output id="prop-rot-y-out">0°</output></label>
+            <input type="range" id="prop-roty" min="0" max="360" value="0"/>
+            <label for="prop-rotz">Giro Z <output id="prop-rotz-out">0°</output></label>
+            <input type="range" id="prop-rotz" min="0" max="360" value="0"/>
+          </div>
+          <div class="field">
+            <label>Posición</label>
+            <div class="pos-grid">
+              <div><span>X</span><input type="number" id="prop-px" step="0.1" value="0"/></div>
+              <div><span>Y</span><input type="number" id="prop-py" step="0.1" value="0"/></div>
+              <div><span>Z</span><input type="number" id="prop-pz" step="0.1" value="0"/></div>
+            </div>
+          </div>
+          <div class="field actions">
+            <button class="btn" id="prop-dup"><svg class="ic"><use href="#i-copy"/></svg> Duplicar</button>
+            <button class="btn" id="prop-center"><svg class="ic"><use href="#i-reset"/></svg> Centrar</button>
+            <button class="btn danger" id="prop-del"><svg class="ic"><use href="#i-trash"/></svg> Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Barra de estado -->
+  <footer class="statusbar">
+    <span id="status-tool">Lápiz</span>
+    <span class="sep"></span>
+    <span id="status-pos">0 × 0 px</span>
+    <span class="sep"></span>
+    <span id="status-size">1920 × 1200 px</span>
+    <span class="sep"></span>
+    <span id="status-objects">0 objetos 3D</span>
+    <span class="grow"></span>
+    <span id="status-zoom">100%</span>
+  </footer>
+</div>
+
+<!-- Selector de color -->
+<div class="popover hidden" id="color-pop">
+  <div class="cp-head">
+    <strong>Colores</strong>
+    <button class="icon-btn" id="cp-close"><svg class="ic sm"><use href="#i-close"/></svg></button>
+  </div>
+  <div class="cp-sv" id="cp-sv"><div class="cp-cursor" id="cp-cursor"></div></div>
+  <div class="cp-hue"><input type="range" id="cp-hue" min="0" max="360" value="210"/></div>
+  <div class="cp-alpha">
+    <span>Opacidad</span>
+    <input type="range" id="cp-alpha" min="0" max="100" value="100"/>
+    <output id="cp-alpha-out">100%</output>
+  </div>
+  <div class="cp-preview-row">
+    <div class="cp-preview" id="cp-preview"></div>
+    <input type="text" id="cp-hex" value="#4CC2FF" spellcheck="false"/>
+    <button class="btn accent" id="cp-ok">Listo</button>
+  </div>
+  <div class="cp-swatches" id="cp-swatches"></div>
+  <div class="cp-recent">
+    <span>Recientes</span>
+    <div id="cp-recent-list"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<input type="file" id="file-input" accept="image/*" hidden />
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
